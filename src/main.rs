@@ -27,6 +27,10 @@ struct Opt {
     )]
     forge_rank: PathBuf,
 
+    /// Gzip output, detected by file extension by default
+    #[structopt(short, long, global = true)]
+    gzip: bool,
+
     /// Output file, stdout if not present
     #[structopt(short, long, global = true, parse(from_os_str))]
     output: Option<PathBuf>,
@@ -41,7 +45,7 @@ enum Command {
     #[structopt(name = "filter")]
     /// Filter VCF records based on FORGe ranking
     Filter {
-        /// Input file
+        /// Input VCF file
         #[structopt(parse(from_os_str))]
         input: PathBuf,
 
@@ -68,7 +72,7 @@ fn main() {
     match opt.cmd {
         Command::Filter { top, input } => {
             info!("parameter: top\t\t= {}", top);
-            filter(input, opt.forge_rank, top, output);
+            filter(input, opt.forge_rank, top, output, opt.gzip);
         }
     }
 }

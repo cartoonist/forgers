@@ -7,12 +7,13 @@ use vcf::{VCFReader, VCFRecord, VCFWriter, VCFError};
 use crate::forge::{self, RegSiteMap};
 use crate::vcf_util::{self, TBufReader};
 
+pub type TBufWriter = BufWriter<Box<dyn Write>>;
+
 fn filter_vcf(
     mut vcf_reader: VCFReader<TBufReader>,
     ranks: RegSiteMap,
-    output: BufWriter<Box<dyn Write>>,
+    writer: TBufWriter,
 ) -> Result<(), VCFError> {
-    let writer = GzEncoder::new(output, Compression::default());
     let mut vcf_writer = VCFWriter::new(writer, &vcf_reader.header())?;
     let mut vcf_record = VCFRecord::new(vcf_reader.header().clone());
     loop {
@@ -35,7 +36,7 @@ fn filter_vcf(
     Ok(())
 }
 
-pub fn filter(input: PathBuf, forge_rank: PathBuf, top: f64, output: PathBuf) {
+pub fn filter(input: PathBuf, forge_rank: PathBuf, top: f64, output: PathBuf, gzip: bool) {
     let (vcf_reader, nr) = vcf_util::load_vcf_and_count(&input).unwrap();
     let n = (top * nr as f64) as usize;
     let ranks = forge::load_rank(&forge_rank, n);
@@ -44,12 +45,23 @@ pub fn filter(input: PathBuf, forge_rank: PathBuf, top: f64, output: PathBuf) {
             filter_vcf(
                 vcf_reader,
                 ranks,
-                BufWriter::new(Box::new(std::io::stdout())),
+                BufWriter::new( if gzip {
+                    Box::new(GzEncoder::new(std::io::stdout(), Compression::default()))
+                } else {
+                    Box::new(std::io::stdout())
+                }),
             ).unwrap();
         }
-        _ => {
-            let file = std::fs::File::create(&output).unwrap();
-            filter_vcf(vcf_reader, ranks, BufWriter::new(Box::new(file))).unwrap();
+        path => {
+            let file = std::fs::File::create(&path).unwrap();
+            let filename = path.display().to_string();
+            filter_vcf(vcf_reader, ranks,
+                       BufWriter::new( if gzip || filename.ends_with(".gz") || filename.ends_with(".bgz") {
+                           Box::new(GzEncoder::new(file, Compression::default()))
+                       } else {
+                           Box::new(file)
+                       }),
+            ).unwrap();
         }
     }
 }
