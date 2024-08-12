@@ -1,9 +1,11 @@
 use flate2::read::MultiGzDecoder;
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, Read, BufWriter, Write};
 use vcf::{VCFError, VCFReader, VCFRecord};
 
 pub type TBufReader = BufReader<Box<dyn Read>>;
+pub type TBufWriter = BufWriter<Box<dyn Write>>;
+
 
 fn _load_vcf<T>(vcf_path: &T) -> Result<VCFReader<TBufReader>, VCFError>
 where

@@ -69,7 +69,7 @@ fn main() {
     match opt.cmd {
         Command::Filter { input, top } => {
             info!("parameter: top\t\t= {}", top);
-            filter(input, opt.forge_rank, top, opt.output, opt.gzip);
+            filter(opt.output, input, opt.forge_rank, top, opt.gzip);
         }
     }
 }
