@@ -1,8 +1,8 @@
-use std::path::PathBuf;
-use std::io::{BufWriter, Write};
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use vcf::{VCFReader, VCFRecord, VCFWriter, VCFError};
+use std::io::{BufWriter, Write};
+use std::path::PathBuf;
+use vcf::{VCFError, VCFReader, VCFRecord, VCFWriter};
 
 use crate::forge::{self, RegSiteMap};
 use crate::vcf_util::{self, TBufReader};

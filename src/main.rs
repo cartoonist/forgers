@@ -1,19 +1,18 @@
-pub mod vcf_util;
-pub mod forge;
 pub mod filter;
+pub mod forge;
+pub mod vcf_util;
 
-use std::path::PathBuf;
 use env_logger::Env;
 use log::info;
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 use crate::filter::filter;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "forger", about = "VCF manipulation based on FORGe ranking.")]
+#[structopt(name = "forgers", about = "VCF manipulation based on FORGe ranking.")]
 struct Opt {
     /// Enable verbose mode
-    // short and long flags (-v, --verbose) will be deduced
     #[structopt(short, long, global = true)]
     verbose: bool,
 
@@ -36,7 +35,6 @@ struct Opt {
     output: Option<PathBuf>,
 
     #[structopt(subcommand)]
-    #[allow(dead_code)]
     cmd: Command,
 }
 
@@ -56,7 +54,7 @@ enum Command {
 }
 
 fn init_logger(verbose: bool) {
-    let level = if verbose { "debug" } else { "info" };
+    let level = if verbose { "debug" } else { "warn" };
     env_logger::Builder::from_env(Env::default().default_filter_or(level)).init();
 }
 
@@ -70,7 +68,7 @@ fn main() {
     info!("parameter: output\t\t= {}", &output.display());
 
     match opt.cmd {
-        Command::Filter { top, input } => {
+        Command::Filter { input, top } => {
             info!("parameter: top\t\t= {}", top);
             filter(input, opt.forge_rank, top, output, opt.gzip);
         }

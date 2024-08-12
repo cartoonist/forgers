@@ -6,6 +6,7 @@ use std::io::{BufRead, BufReader};
 pub type SiteMap = HashMap<u64, usize>;
 pub type RegSiteMap = HashMap<String, SiteMap>;
 
+
 pub fn parse_id(id: &str) -> Option<(String, u64)> {
     let tokens: Vec<&str> = id.split(':').collect();
     if tokens.len() != 2 {
