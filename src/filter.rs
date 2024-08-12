@@ -11,6 +11,8 @@ fn filter_vcf(
     mut vcf_writer: VCFWriter<TBufWriter>,
     mut vcf_reader: VCFReader<TBufReader>,
     ranks: RegSiteMap,
+    annotate: bool,
+    info_key: String,
 ) -> Result<(), VCFError> {
     let mut vcf_record = VCFRecord::new(vcf_reader.header().clone());
     loop {
@@ -20,11 +22,18 @@ fn filter_vcf(
                 .expect("CHROM is not UTF-8 encoded");
             let pos = vcf_record.position;
             match ranks.get(&chrom) {
-                Some(s) => {
-                    if s.contains_key(&pos) {
+                Some(s) => match s.get(&pos) {
+                    Some(fr) => {
+                        if annotate {
+                            vcf_record.insert_info(
+                                info_key.as_bytes(),
+                                vec![format!("{}", fr).as_bytes().to_vec()],
+                            );
+                        }
                         vcf_writer.write_record(&vcf_record)?;
                     }
-                }
+                    None => {}
+                },
                 None => {}
             }
         } else {
@@ -39,7 +48,9 @@ pub fn filter(
     input: PathBuf,
     forge_rank: PathBuf,
     top: f64,
-    gzip: bool
+    gzip: bool,
+    annotate: bool,
+    info_key: String,
 ) -> Result<(), VCFError> {
     let (vcf_reader, nr) = vcf_util::load_vcf_and_count(&input)?;
     let n = (top * nr as f64) as usize;
@@ -52,7 +63,7 @@ pub fn filter(
                 Box::new(stdout())
             });
             let vcf_writer = VCFWriter::new(writer, &vcf_reader.header())?;
-            filter_vcf(vcf_writer, vcf_reader, ranks)?;
+            filter_vcf(vcf_writer, vcf_reader, ranks, annotate, info_key)?;
             Ok(())
         }
         path => {
@@ -66,7 +77,7 @@ pub fn filter(
                 },
             );
             let vcf_writer = VCFWriter::new(writer, &vcf_reader.header())?;
-            filter_vcf(vcf_writer, vcf_reader, ranks)?;
+            filter_vcf(vcf_writer, vcf_reader, ranks, annotate, info_key)?;
             Ok(())
         }
     }

@@ -50,6 +50,14 @@ enum Command {
         /// Top fraction of records to keep, keeps all by default
         #[structopt(short, long, default_value = "1.0")]
         top: f64,
+
+        /// Annotate the filtered records with FORGe rank
+        #[structopt(short, long)]
+        annotate: bool,
+
+        /// Annotate key for INFO field
+        #[structopt(short = "k", long, default_value = "FORGE")]
+        info_key: String,
     },
 }
 
@@ -67,9 +75,23 @@ fn main() {
     info!("parameter: output\t\t= {}", &opt.output.display());
 
     match opt.cmd {
-        Command::Filter { input, top } => {
+        Command::Filter {
+            input,
+            top,
+            annotate,
+            info_key,
+        } => {
             info!("parameter: top\t\t= {}", top);
-            filter(opt.output, input, opt.forge_rank, top, opt.gzip);
+            filter(
+                opt.output,
+                input,
+                opt.forge_rank,
+                top,
+                opt.gzip,
+                annotate,
+                info_key,
+            )
+            .unwrap();
         }
     }
 }
