@@ -31,8 +31,8 @@ struct Opt {
     gzip: bool,
 
     /// Output file, stdout if not present
-    #[structopt(short, long, global = true, parse(from_os_str))]
-    output: Option<PathBuf>,
+    #[structopt(short, long, global = true, default_value = "-", parse(from_os_str))]
+    output: PathBuf,
 
     #[structopt(subcommand)]
     cmd: Command,
@@ -47,8 +47,8 @@ enum Command {
         #[structopt(parse(from_os_str))]
         input: PathBuf,
 
-        /// Top percentage of records to keep
-        #[structopt(short, long, default_value = "0.1")]
+        /// Top fraction of records to keep, keeps all by default
+        #[structopt(short, long, default_value = "1.0")]
         top: f64,
     },
 }
@@ -62,15 +62,14 @@ fn main() {
     let opt = Opt::from_args();
     init_logger(opt.verbose);
 
-    let output = opt.output.unwrap_or(PathBuf::from("-"));
     info!("parameter: verbose\t\t= {}", opt.verbose);
     info!("parameter: forge_rank\t= {}", &opt.forge_rank.display());
-    info!("parameter: output\t\t= {}", &output.display());
+    info!("parameter: output\t\t= {}", &opt.output.display());
 
     match opt.cmd {
         Command::Filter { input, top } => {
             info!("parameter: top\t\t= {}", top);
-            filter(input, opt.forge_rank, top, output, opt.gzip);
+            filter(input, opt.forge_rank, top, opt.output, opt.gzip);
         }
     }
 }
