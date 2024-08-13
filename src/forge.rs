@@ -1,11 +1,10 @@
 use log::warn;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Seek, SeekFrom};
 
 pub type SiteMap = HashMap<u64, usize>;
 pub type RegSiteMap = HashMap<String, SiteMap>;
-
 
 pub fn parse_id(id: &str) -> Option<(String, u64)> {
     let tokens: Vec<&str> = id.split(':').collect();
@@ -13,20 +12,24 @@ pub fn parse_id(id: &str) -> Option<(String, u64)> {
         return None;
     }
     match tokens[1].parse::<u64>() {
-        Ok(pos) => {
-            Some((String::from(tokens[0]), pos))
-        }
+        Ok(pos) => Some((String::from(tokens[0]), pos)),
         Err(_) => None,
     }
 }
 
-pub fn load_rank<T>(path: T, n: usize) -> RegSiteMap
+pub fn load_rank<T>(path: T, top: f64) -> RegSiteMap
 where
     T: AsRef<std::path::Path>,
 {
-    let file = File::open(path).expect("FORGe rank file not found");
-    let reader = BufReader::new(file);
+    let mut file = File::open(path).expect("FORGe rank file not found");
+    let reader = BufReader::new(&file);
 
+    let nof_records = reader.lines().count();
+
+    file.seek(SeekFrom::Start(0)).expect("Cannot seek to start of file");
+    let reader = BufReader::new(&file);
+
+    let n = (top * nof_records as f64) as usize;
     let mut smap = RegSiteMap::new();
     let mut i: usize = 1;
     for line in reader.lines() {

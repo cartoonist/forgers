@@ -52,9 +52,8 @@ pub fn filter(
     annotate: bool,
     info_key: String,
 ) -> Result<(), VCFError> {
-    let (vcf_reader, nr) = vcf_util::load_vcf_and_count(&input)?;
-    let n = (top * nr as f64) as usize;
-    let ranks = forge::load_rank(&forge_rank, n);
+    let vcf_reader = vcf_util::load_vcf(&input)?;
+    let ranks = forge::load_rank(&forge_rank, top);
     match output {
         path if path == PathBuf::from("-") => {
             let writer: TBufWriter = BufWriter::new(if gzip {
