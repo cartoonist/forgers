@@ -29,6 +29,8 @@ impl<W: Write, R: Read> vcf_util::Process<W, R> for option::Opt {
                 info_key,
             } => {
                 info!("parameter: top\t\t= {}", top);
+                info!("parameter: annotate\t= {}", annotate);
+                info!("parameter: info_key\t= {}", info_key);
                 filter::filter(
                     vcf_writer,
                     vcf_reader,
@@ -49,8 +51,9 @@ fn main() {
 
     info!("parameter: verbose\t\t= {}", opt.verbose);
     info!("parameter: input\t\t= {}", path_or(&opt.input, "stdin"));
-    info!("parameter: output\t\t= {}", path_or(&opt.output, "stdout"));
     info!("parameter: forge_rank\t= {}", &opt.forge_rank.display());
+    info!("parameter: gzip\t\t= {}", opt.gzip);
+    info!("parameter: output\t\t= {}", path_or(&opt.output, "stdout"));
 
     vcf_util::launch_iostream(opt);
 }
