@@ -1,19 +1,23 @@
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use std::io::{stdout, BufWriter};
-use std::path::PathBuf;
+use std::io::{BufReader, BufWriter, Read, Write};
+use std::path::Path;
 use vcf::{VCFError, VCFReader, VCFRecord, VCFWriter};
 
-use crate::forge::{self, RegSiteMap};
-use crate::vcf_util::{self, TBufReader, TBufWriter};
+use crate::forge;
 
-fn filter_vcf(
-    mut vcf_writer: VCFWriter<TBufWriter>,
-    mut vcf_reader: VCFReader<TBufReader>,
-    ranks: RegSiteMap,
+pub fn filter<T, W, R>(
+    mut vcf_writer: VCFWriter<BufWriter<W>>,
+    mut vcf_reader: VCFReader<BufReader<R>>,
+    forge_rank: &T,
+    top: f64,
     annotate: bool,
-    info_key: String,
-) -> Result<(), VCFError> {
+    info_key: &String,
+) -> Result<(), VCFError>
+where
+    T: AsRef<Path>,
+    W: Write,
+    R: Read,
+{
+    let ranks = forge::load_rank(forge_rank, top);
     let mut vcf_record = VCFRecord::new(vcf_reader.header().clone());
     loop {
         let fetched = vcf_reader.next_record(&mut vcf_record)?;
@@ -41,43 +45,4 @@ fn filter_vcf(
         }
     }
     Ok(())
-}
-
-pub fn filter(
-    output: PathBuf,
-    input: PathBuf,
-    forge_rank: PathBuf,
-    top: f64,
-    gzip: bool,
-    annotate: bool,
-    info_key: String,
-) -> Result<(), VCFError> {
-    let vcf_reader = vcf_util::load_vcf(&input)?;
-    let ranks = forge::load_rank(&forge_rank, top);
-    match output {
-        path if path == PathBuf::from("-") => {
-            let writer: TBufWriter = BufWriter::new(if gzip {
-                Box::new(GzEncoder::new(stdout(), Compression::default()))
-            } else {
-                Box::new(stdout())
-            });
-            let vcf_writer = VCFWriter::new(writer, &vcf_reader.header())?;
-            filter_vcf(vcf_writer, vcf_reader, ranks, annotate, info_key)?;
-            Ok(())
-        }
-        path => {
-            let file = std::fs::File::create(&path).expect("Output file could not be created");
-            let filename = path.display().to_string();
-            let writer: TBufWriter = BufWriter::new(
-                if gzip || filename.ends_with(".gz") || filename.ends_with(".bgz") {
-                    Box::new(GzEncoder::new(file, Compression::default()))
-                } else {
-                    Box::new(file)
-                },
-            );
-            let vcf_writer = VCFWriter::new(writer, &vcf_reader.header())?;
-            filter_vcf(vcf_writer, vcf_reader, ranks, annotate, info_key)?;
-            Ok(())
-        }
-    }
 }

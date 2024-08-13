@@ -26,7 +26,8 @@ where
 
     let nof_records = reader.lines().count();
 
-    file.seek(SeekFrom::Start(0)).expect("Cannot seek to start of file");
+    file.seek(SeekFrom::Start(0))
+        .expect("Cannot seek to start of file");
     let reader = BufReader::new(&file);
 
     let n = (top * nof_records as f64) as usize;
