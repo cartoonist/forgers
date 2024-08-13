@@ -52,5 +52,5 @@ fn main() {
     info!("parameter: output\t\t= {}", path_or(&opt.output, "stdout"));
     info!("parameter: forge_rank\t= {}", &opt.forge_rank.display());
 
-    vcf_util::launch_iostream(opt).unwrap();
+    vcf_util::launch_iostream(opt);
 }

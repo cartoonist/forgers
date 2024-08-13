@@ -1,6 +1,7 @@
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
+use log::error;
 use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Read, Stdin, Stdout, Write};
 use std::path::Path;
@@ -63,13 +64,13 @@ pub trait Process<W: Write, R: Read> {
     fn process(&mut self, writer: VCFWriter<BufWriter<W>>, reader: VCFReader<BufReader<R>>);
 }
 
-pub fn launch_iostream(opt: Opt) -> Result<(), VCFError> {
+pub fn launch_iostream(opt: Opt) {
     let ipath = opt.input.clone();
     let opath = opt.output.clone();
     load_istream(&ipath, &opath, opt)
 }
 
-fn load_istream<T>(ipath: &T, opath: &T, opt: Opt) -> Result<(), VCFError>
+fn load_istream<T>(ipath: &T, opath: &T, opt: Opt)
 where
     T: AsRef<Path>,
 {
@@ -77,35 +78,60 @@ where
         StreamType::Stdio => {
             let mut lstdin = stdin();
             if is_gzipped_stdin(&mut lstdin) {
-                let vcf_reader = reader_stdio_gz(lstdin)?;
-                load_ostream(&opath, vcf_reader, opt)?;
+                match reader_stdio_gz(lstdin) {
+                    Ok(vcf_reader) => {
+                        load_ostream(&opath, vcf_reader, opt);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
+                }
             } else {
-                let vcf_reader = reader_stdio(lstdin)?;
-                load_ostream(&opath, vcf_reader, opt)?;
+                match reader_stdio(lstdin) {
+                    Ok(vcf_reader) => {
+                        load_ostream(&opath, vcf_reader, opt);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
+                }
             }
-            Ok(())
         }
         StreamType::File => {
-            match compress_type(&ipath, is_gzipped_file(&ipath)) {
-                CompressionType::Gzip | CompressionType::Bgzip => {
-                    let vcf_reader = reader_file_gz(&ipath)?;
-                    load_ostream(&opath, vcf_reader, opt)?;
+            let gz = match is_gzipped_file(&ipath) {
+                Ok(v) => v,
+                Err(e) => {
+                    error!("'{}': {}", &ipath.as_ref().display(), e);
+                    std::process::exit(1);
                 }
-                CompressionType::None => {
-                    let vcf_reader = reader_file(&ipath)?;
-                    load_ostream(&opath, vcf_reader, opt)?;
-                }
+            };
+            match compress_type(&ipath, gz) {
+                CompressionType::Gzip | CompressionType::Bgzip => match reader_file_gz(&ipath) {
+                    Ok(vcf_reader) => {
+                        load_ostream(&opath, vcf_reader, opt);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
+                },
+                CompressionType::None => match reader_file(&ipath) {
+                    Ok(vcf_reader) => {
+                        load_ostream(&opath, vcf_reader, opt);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
+                },
             }
-            Ok(())
         }
     }
 }
 
-fn load_ostream<T, R>(
-    path: &T,
-    vcf_reader: VCFReader<BufReader<R>>,
-    mut opt: Opt,
-) -> Result<(), VCFError>
+fn load_ostream<T, R>(path: &T, vcf_reader: VCFReader<BufReader<R>>, mut opt: Opt)
 where
     T: AsRef<Path>,
     R: Read,
@@ -113,27 +139,49 @@ where
     match stream_type(&path) {
         StreamType::Stdio => {
             if opt.gzip {
-                let vcf_writer = writer_stdio_gz(&vcf_reader.header())?;
-                opt.process(vcf_writer, vcf_reader);
+                match writer_stdio_gz(&vcf_reader.header()) {
+                    Ok(vcf_writer) => {
+                        opt.process(vcf_writer, vcf_reader);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &path.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
+                }
             } else {
-                let vcf_writer = writer_stdio(&vcf_reader.header())?;
-                opt.process(vcf_writer, vcf_reader);
-            }
-            Ok(())
-        }
-        StreamType::File => {
-            match compress_type(&path, opt.gzip) {
-                CompressionType::Gzip | CompressionType::Bgzip => {
-                    let vcf_writer = writer_file_gz(&path, &vcf_reader.header())?;
-                    opt.process(vcf_writer, vcf_reader);
-                }
-                CompressionType::None => {
-                    let vcf_writer = writer_file(&path, &vcf_reader.header())?;
-                    opt.process(vcf_writer, vcf_reader);
+                match writer_stdio(&vcf_reader.header()) {
+                    Ok(vcf_writer) => {
+                        opt.process(vcf_writer, vcf_reader);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &path.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
                 }
             }
-            Ok(())
         }
+        StreamType::File => match compress_type(&path, opt.gzip) {
+            CompressionType::Gzip | CompressionType::Bgzip => {
+                match writer_file_gz(&path, &vcf_reader.header()) {
+                    Ok(vcf_writer) => {
+                        opt.process(vcf_writer, vcf_reader);
+                    }
+                    Err(e) => {
+                        error!("'{}': {}", &path.as_ref().display(), e);
+                        std::process::exit(1);
+                    }
+                }
+            }
+            CompressionType::None => match writer_file(&path, &vcf_reader.header()) {
+                Ok(vcf_writer) => {
+                    opt.process(vcf_writer, vcf_reader);
+                }
+                Err(e) => {
+                    error!("'{}': {}", &path.as_ref().display(), e);
+                    std::process::exit(1);
+                }
+            },
+        },
     }
 }
 
@@ -141,7 +189,7 @@ pub fn writer_file<T>(path: &T, header: &VCFHeader) -> Result<VCFWriter<BufWrite
 where
     T: AsRef<Path>,
 {
-    let file = File::create(path).expect("Output file could not be created");
+    let file = File::create(path)?;
     VCFWriter::new(BufWriter::new(file), header)
 }
 
@@ -152,7 +200,7 @@ pub fn writer_file_gz<T>(
 where
     T: AsRef<Path>,
 {
-    let file = File::create(path).expect("Output file could not be created");
+    let file = File::create(path)?;
     VCFWriter::new(
         BufWriter::new(GzEncoder::new(file, Compression::default())),
         header,
@@ -176,7 +224,7 @@ pub fn reader_file<T>(path: &T) -> Result<VCFReader<BufReader<File>>, VCFError>
 where
     T: AsRef<Path>,
 {
-    let file = File::open(path).expect("Input VCF file not found");
+    let file = File::open(path)?;
     VCFReader::new(BufReader::new(file))
 }
 
@@ -184,7 +232,7 @@ pub fn reader_file_gz<T>(path: &T) -> Result<VCFReader<BufReader<MultiGzDecoder<
 where
     T: AsRef<Path>,
 {
-    let file = File::open(path).expect("Input VCF file not found");
+    let file = File::open(path)?;
     VCFReader::new(BufReader::new(MultiGzDecoder::new(file)))
 }
 
@@ -192,8 +240,9 @@ pub fn reader_stdio(lstdin: Stdin) -> Result<VCFReader<BufReader<Stdin>>, VCFErr
     VCFReader::new(BufReader::new(lstdin))
 }
 
-pub fn reader_stdio_gz(lstdin: Stdin) -> Result<VCFReader<BufReader<MultiGzDecoder<Stdin>>>, VCFError> {
-
+pub fn reader_stdio_gz(
+    lstdin: Stdin,
+) -> Result<VCFReader<BufReader<MultiGzDecoder<Stdin>>>, VCFError> {
     VCFReader::new(BufReader::new(MultiGzDecoder::new(lstdin)))
 }
 
@@ -218,29 +267,27 @@ pub fn is_gzipped_stdin(lstdin: &mut Stdin) -> bool {
     let mut lock = lstdin.lock();
     let buf = lock.fill_buf().unwrap();
     match buf[0] {
-        0x1f => {
-            match buf[1] {
-                0x8b => {
-                    return true;
-                }
-                _ => {},
+        0x1f => match buf[1] {
+            0x8b => {
+                return true;
             }
-        }
-        _ => {},
+            _ => {}
+        },
+        _ => {}
     }
     false
 }
 
-pub fn is_gzipped_file<T>(path: &T) -> bool
+pub fn is_gzipped_file<T>(path: &T) -> Result<bool, std::io::Error>
 where
     T: AsRef<Path>,
 {
-    let mut reader = BufReader::new(File::open(path).expect("File not found"));
+    let mut reader = BufReader::new(File::open(path)?);
     let mut itr = reader.fill_buf().into_iter().peekable();
     let values = itr.peek().unwrap();
     if values[0] == 0x1f && values[1] == 0x8b {
-        true
+        Ok(true)
     } else {
-        false
+        Ok(false)
     }
 }
