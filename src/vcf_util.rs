@@ -83,7 +83,7 @@ where
                         load_ostream(&opath, vcf_reader, opt);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        error!("{}: '{}'", e, &ipath.as_ref().display());
                         std::process::exit(1);
                     }
                 }
@@ -93,7 +93,7 @@ where
                         load_ostream(&opath, vcf_reader, opt);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        error!("{}: '{}'", e, &ipath.as_ref().display());
                         std::process::exit(1);
                     }
                 }
@@ -103,7 +103,7 @@ where
             let gz = match is_gzipped_file(&ipath) {
                 Ok(v) => v,
                 Err(e) => {
-                    error!("'{}': {}", &ipath.as_ref().display(), e);
+                    error!("{}: '{}'", e, &ipath.as_ref().display());
                     std::process::exit(1);
                 }
             };
@@ -113,7 +113,7 @@ where
                         load_ostream(&opath, vcf_reader, opt);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        error!("{}: '{}'", e, &ipath.as_ref().display());
                         std::process::exit(1);
                     }
                 },
@@ -122,7 +122,7 @@ where
                         load_ostream(&opath, vcf_reader, opt);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &ipath.as_ref().display(), e);
+                        error!("{}: '{}'", e, &ipath.as_ref().display());
                         std::process::exit(1);
                     }
                 },
@@ -144,7 +144,7 @@ where
                         opt.process(vcf_writer, vcf_reader);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &path.as_ref().display(), e);
+                        error!("{}: '{}'", e, &path.as_ref().display());
                         std::process::exit(1);
                     }
                 }
@@ -154,7 +154,7 @@ where
                         opt.process(vcf_writer, vcf_reader);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &path.as_ref().display(), e);
+                        error!("{}: '{}'", e, &path.as_ref().display());
                         std::process::exit(1);
                     }
                 }
@@ -167,7 +167,7 @@ where
                         opt.process(vcf_writer, vcf_reader);
                     }
                     Err(e) => {
-                        error!("'{}': {}", &path.as_ref().display(), e);
+                        error!("{}: '{}'", e, &path.as_ref().display());
                         std::process::exit(1);
                     }
                 }
@@ -177,7 +177,7 @@ where
                     opt.process(vcf_writer, vcf_reader);
                 }
                 Err(e) => {
-                    error!("'{}': {}", &path.as_ref().display(), e);
+                    error!("{}: '{}'", e, &path.as_ref().display());
                     std::process::exit(1);
                 }
             },

@@ -1,4 +1,4 @@
-use log::warn;
+use log::{error, warn};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
@@ -24,7 +24,7 @@ where
     let mut file = File::open(path).expect("FORGe rank file not found");
     let reader = BufReader::new(&file);
 
-    let nof_records = reader.lines().count();
+    let nof_records = reader.split(b'\t').count();
 
     file.seek(SeekFrom::Start(0))
         .expect("Cannot seek to start of file");
