@@ -48,7 +48,7 @@ where
         match item {
             Ok(item) => {
                 let rec = String::from_utf8_lossy(&item);
-                match parse_id(&rec) {
+                match parse_id(&rec.trim_end()) {
                     Some((region, pos)) => {
                         let entry = smap.entry(region).or_insert(HashMap::new()).entry(pos);
 
