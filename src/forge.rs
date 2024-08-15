@@ -17,7 +17,7 @@ fn pretty_trunc(s: &str, n: usize) -> String {
 }
 
 pub fn parse_id(id: &str) -> Option<(String, u64)> {
-    let tokens: Vec<&str> = id.split(':').collect();
+    let tokens: Vec<&str> = id.split(',').collect();
     if tokens.len() != 2 {
         return None;
     }
