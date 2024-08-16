@@ -22,19 +22,16 @@ where
     loop {
         let fetched = vcf_reader.next_record(&mut vcf_record)?;
         if fetched {
-            match ranks.get(&vcf_record.chromosome) {
-                Some(s) => match s.get(&vcf_record.position) {
-                    Some(fr) => {
-                        if annotate {
-                            vcf_record.insert_info(
-                                info_key.as_bytes(),
-                                vec![format!("{}", fr).as_bytes().to_vec()],
-                            );
-                        }
-                        vcf_writer.write_record(&vcf_record)?;
+            match forge::forge_rank(&vcf_record, &ranks) {
+                Some(fr) => {
+                    if annotate {
+                        vcf_record.insert_info(
+                            info_key.as_bytes(),
+                            vec![format!("{}", fr).as_bytes().to_vec()],
+                        );
                     }
-                    None => {}
-                },
+                    vcf_writer.write_record(&vcf_record)?;
+                }
                 None => {}
             }
         } else {

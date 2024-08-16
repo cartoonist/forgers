@@ -3,6 +3,7 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
+use vcf::VCFRecord;
 
 pub type Region = Vec<u8>;
 pub type SiteMap = HashMap<u64, usize>;
@@ -32,6 +33,14 @@ pub fn parse_id(id: &str) -> Option<(Region, u64)> {
             }
         }
         _ => None,
+    }
+}
+
+/// Get FORGe rank of a record
+pub fn forge_rank<'a>(record: &VCFRecord, ranks: &'a RegSiteMap) -> Option<&'a usize> {
+    match ranks.get(&record.chromosome) {
+        Some(sitemap) => sitemap.get(&record.position),
+        None => None
     }
 }
 
