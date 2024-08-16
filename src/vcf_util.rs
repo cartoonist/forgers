@@ -1,7 +1,7 @@
 use flate2::read::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use log::error;
+use log::{error, warn};
 use std::fs::File;
 use std::io::{stdin, stdout, BufRead, BufReader, BufWriter, Read, Stdin, Stdout, Write};
 use std::path::Path;
@@ -289,5 +289,81 @@ where
         Ok(true)
     } else {
         Ok(false)
+    }
+}
+
+pub enum Genotype {
+    Phased(Vec<bool>),
+    Unphased(Vec<bool>),
+    Missing,
+}
+
+pub enum VCFUtilError {
+    ParseError(String),
+}
+
+impl std::fmt::Display for VCFUtilError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            VCFUtilError::ParseError(ref msg) => write!(f, "ParseError: {}", msg),
+        }
+    }
+}
+
+/// Parse VCF string value to Genotype
+pub fn parse_genotype(field: Option<&Vec<Vec<u8>>>) -> Result<Genotype, VCFUtilError> {
+    let mut genotype = Vec::new();
+    let mut phased = true;
+    match field {
+        Some(v) => {
+            let value = &v[0];
+            if value[0] == b'.' {
+                return Ok(Genotype::Missing);
+            }
+
+            for g in value {
+                match g {
+                    b'0' => {
+                        genotype.push(false);
+                    }
+                    b'1' => {
+                        genotype.push(true);
+                    }
+                    b'/' => {
+                        phased = false;
+                    }
+                    b'|' => {
+                        continue;
+                    }
+                    _ => {
+                        let msg = format!(
+                            "Cannot parse genotype value: '{}'",
+                            std::str::from_utf8(value).unwrap()
+                        );
+                        return Err(VCFUtilError::ParseError(msg));
+                    }
+                }
+            }
+
+            match phased {
+                true => Ok(Genotype::Phased(genotype)),
+                false => Ok(Genotype::Unphased(genotype)),
+            }
+        }
+        None => Ok(Genotype::Missing),
+    }
+}
+
+pub fn unwrap_genotype(result: Result<Genotype, VCFUtilError>, sample: &Vec<u8>) -> Genotype {
+    match result {
+        Ok(v) => v,
+        Err(e) => {
+            warn!(
+                "Recovering error in parsing genotype field for sample '{}':",
+                std::str::from_utf8(sample).unwrap()
+            );
+            error!("  {}", e);
+            Genotype::Missing
+        }
     }
 }

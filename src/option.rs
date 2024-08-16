@@ -8,7 +8,7 @@ pub struct Opt {
     #[structopt(short, long, global = true)]
     pub verbose: bool,
 
-    /// Input VCF file
+    /// Input VCF file, stdin if not specified
     #[structopt(global = true, default_value = "-", parse(from_os_str))]
     pub input: PathBuf,
 
@@ -26,7 +26,7 @@ pub struct Opt {
     #[structopt(short, long, global = true)]
     pub gzip: bool,
 
-    /// Output file, stdout if not present
+    /// Output file, stdout if not specified
     #[structopt(short, long, global = true, default_value = "-", parse(from_os_str))]
     pub output: PathBuf,
 
@@ -51,4 +51,6 @@ pub enum Command {
         #[structopt(short = "k", long, default_value = "FORGE")]
         info_key: String,
     },
+    /// Resolve overlapping variants based on FORGe ranking
+    Resolve {},
 }

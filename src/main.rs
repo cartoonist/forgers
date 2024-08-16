@@ -1,6 +1,7 @@
 pub mod filter;
 pub mod forge;
 pub mod option;
+pub mod resolve;
 pub mod vcf_util;
 
 use env_logger::Env;
@@ -31,6 +32,7 @@ impl<W: Write, R: Read> vcf_util::Process<W, R> for option::Opt {
                 info!("parameter: top\t\t= {}", top);
                 info!("parameter: annotate\t= {}", annotate);
                 info!("parameter: info_key\t= {}", info_key);
+                info!("parameter: command\t\t= filter");
                 filter::filter(
                     vcf_writer,
                     vcf_reader,
@@ -40,6 +42,11 @@ impl<W: Write, R: Read> vcf_util::Process<W, R> for option::Opt {
                     info_key,
                 )
                 .unwrap();
+            }
+
+            option::Command::Resolve {} => {
+                info!("parameter: command\t\t= resolve");
+                resolve::resolve(vcf_writer, vcf_reader, &self.forge_rank).unwrap();
             }
         }
     }
