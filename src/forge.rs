@@ -4,8 +4,9 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, SeekFrom};
 
+pub type Region = Vec<u8>;
 pub type SiteMap = HashMap<u64, usize>;
-pub type RegSiteMap = HashMap<String, SiteMap>;
+pub type RegSiteMap = HashMap<Region, SiteMap>;
 
 fn pretty_trunc(s: &str, n: usize) -> String {
     let prettify = |x: &str| x.replace("\n", "⏎  ");
@@ -16,14 +17,21 @@ fn pretty_trunc(s: &str, n: usize) -> String {
     }
 }
 
-pub fn parse_id(id: &str) -> Option<(String, u64)> {
+pub fn parse_id(id: &str) -> Option<(Region, u64)> {
     let tokens: Vec<&str> = id.split(',').collect();
     if tokens.len() != 2 {
         return None;
     }
-    match tokens[1].parse::<u64>() {
-        Ok(pos) => Some((String::from(tokens[0]), pos)),
-        Err(_) => None,
+    match (tokens[0], tokens[1].parse::<u64>()) {
+        (region, Ok(pos)) => {
+            if region.is_ascii() {
+                Some((region.as_bytes().to_vec(), pos))
+            } else {
+                warn!("Non-ASCII characters in the region name '{}'", region);
+                None
+            }
+        }
+        _ => None,
     }
 }
 

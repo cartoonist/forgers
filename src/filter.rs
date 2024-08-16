@@ -22,11 +22,8 @@ where
     loop {
         let fetched = vcf_reader.next_record(&mut vcf_record)?;
         if fetched {
-            let chrom = String::from_utf8(vcf_record.chromosome.to_vec())
-                .expect("CHROM is not UTF-8 encoded");
-            let pos = vcf_record.position;
-            match ranks.get(&chrom) {
-                Some(s) => match s.get(&pos) {
+            match ranks.get(&vcf_record.chromosome) {
+                Some(s) => match s.get(&vcf_record.position) {
                     Some(fr) => {
                         if annotate {
                             vcf_record.insert_info(
