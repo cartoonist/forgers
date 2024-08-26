@@ -9,6 +9,12 @@ pub type Region = Vec<u8>;
 pub type SiteMap = HashMap<u64, usize>;
 pub type RegSiteMap = HashMap<Region, SiteMap>;
 
+/// Prettify and truncate a token for logging
+///
+/// # Arguments
+///
+/// `s` - string to be prettified and truncated
+/// `n` - maximum length
 fn pretty_trunc(s: &str, n: usize) -> String {
     let prettify = |x: &str| x.replace("\n", "⏎  ");
     if s.len() <= n {
@@ -18,6 +24,7 @@ fn pretty_trunc(s: &str, n: usize) -> String {
     }
 }
 
+/// Parse an entry in the FORGe ranking file
 pub fn parse_id(id: &str) -> Option<(Region, u64)> {
     let tokens: Vec<&str> = id.split(',').collect();
     if tokens.len() != 2 {
@@ -36,14 +43,20 @@ pub fn parse_id(id: &str) -> Option<(Region, u64)> {
     }
 }
 
-/// Get FORGe rank of a record
+/// Get FORGe rank of a VCF record
 pub fn forge_rank<'a>(record: &VCFRecord, ranks: &'a RegSiteMap) -> Option<&'a usize> {
     match ranks.get(&record.chromosome) {
         Some(sitemap) => sitemap.get(&record.position),
-        None => None
+        None => None,
     }
 }
 
+/// Load ranks file into a `RegSiteMap` instance
+///
+/// # Arguments
+///
+/// `path` - path to FORGe ranks file (output by FORGe's `rank.py`)
+/// `top` - only load first (100*`top`)% of variants in the file
 pub fn load_rank<T>(path: T, top: f64) -> RegSiteMap
 where
     T: AsRef<std::path::Path>,

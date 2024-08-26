@@ -224,6 +224,12 @@ fn merge_range(r1: &PosRange, r2: &PosRange) -> PosRange {
 
 /// Resolve overlapping variants by ranking.
 ///
+/// # Arguments
+///
+/// * `vcf_reader` - VCF input stream
+/// * `vcf_writer` - VCF output stream
+/// * `ranks_path` - FORGe ranking file path
+///
 /// **NOTE**: The input VCF file must be sorted by CHROM and POS and variants
 /// should be normalised.
 pub fn resolve<T, W, R>(

@@ -12,12 +12,14 @@ use vcf::{VCFReader, VCFWriter};
 
 use crate::vcf_util::path_or;
 
+/// Initial the logger and set the verbosity.
 fn init_logger(verbose: bool) {
     let level = if verbose { "debug" } else { "warn" };
     env_logger::Builder::from_env(Env::default().default_filter_or(level)).init();
 }
 
 impl<W: Write, R: Read> vcf_util::Process<W, R> for option::Opt {
+    /// Dispatch the function corresponding to each subcommand with required parameters.
     fn process(&mut self, vcf_writer: VCFWriter<BufWriter<W>>, vcf_reader: VCFReader<BufReader<R>>)
     where
         R: Read,

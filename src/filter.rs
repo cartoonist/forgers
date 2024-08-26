@@ -4,6 +4,16 @@ use vcf::{VCFError, VCFReader, VCFRecord, VCFWriter};
 
 use crate::forge;
 
+/// Filter and annotate VCF records based on FORGe ranking.
+///
+/// # Arguments
+///
+/// * `vcf_reader` - VCF input stream
+/// * `vcf_writer` - VCF output stream
+/// * `ranks_path` - FORGe ranking file path
+/// * `top` - This fraction of records will be written in the output stream
+/// * `annotate` - Whether annotate the records with FORGe ranking or not
+/// * `info_key` - VCF INFO key for FORGe ranking annotation
 pub fn filter<T, W, R>(
     mut vcf_writer: VCFWriter<BufWriter<W>>,
     mut vcf_reader: VCFReader<BufReader<R>>,

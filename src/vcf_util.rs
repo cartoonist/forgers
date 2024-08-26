@@ -9,11 +9,17 @@ use vcf::{VCFError, VCFHeader, VCFReader, VCFRecord, VCFWriter};
 
 use crate::option::Opt;
 
+/// TODO: Write documentation of this module
+
+/// Stream type.
 pub enum StreamType {
     File,
     Stdio,
 }
 
+/// Compression type.
+///
+/// The default compression type is `Gzip` when compression is forced.
 #[derive(Default)]
 pub enum CompressionType {
     None,
@@ -22,6 +28,7 @@ pub enum CompressionType {
     Bgzip,
 }
 
+/// Determine stream type by path.
 pub fn stream_type<T>(path: &T) -> StreamType
 where
     T: AsRef<Path>,
@@ -33,6 +40,7 @@ where
     }
 }
 
+/// Determine compression type by path.
 pub fn compress_type<T>(path: &T, force: bool) -> CompressionType
 where
     T: AsRef<Path>,

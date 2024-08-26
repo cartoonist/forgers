@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+/// Data structure for command line options.
 #[derive(Debug, StructOpt)]
 #[structopt(name = "forgers", about = "VCF manipulation based on FORGe ranking.")]
 pub struct Opt {
@@ -34,6 +35,7 @@ pub struct Opt {
     pub cmd: Command,
 }
 
+/// Data structure for subcommand options.
 #[derive(Debug, StructOpt)]
 pub enum Command {
     #[structopt(name = "filter")]
