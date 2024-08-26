@@ -1,7 +1,15 @@
 [package]
 name = "forgers"
 version = "0.1.0"
+authors = ["Ali Ghaffaari <ali@ghaffaari.com>"]
 edition = "2021"
+description = "VCF manipulation based on FORGe ranking"
+license = "MIT"
+homepage = "https://github.com/cartoonist/forgers"
+repository = "https://github.com/cartoonist/forgers"
+readme = "README.md"
+keywords = ["bioinformatics", "pangenomics", "pangenome", "vcf"]
+categories = ["command-line-utilities", "science::bioinformatics::genomics"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
