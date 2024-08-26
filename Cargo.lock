@@ -175,7 +175,7 @@ dependencies = [
 
 [[package]]
 name = "forgers"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bitvec",
  "env_logger",
