@@ -35,7 +35,6 @@ pub struct Opt {
     pub cmd: Command,
 }
 
-/// Data structure for subcommand options.
 #[derive(Debug, StructOpt)]
 pub enum Command {
     #[structopt(name = "filter")]
