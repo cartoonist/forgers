@@ -21,7 +21,7 @@ pub struct Opt {
         parse(from_os_str),
         default_value = "ordered.txt"
     )]
-    pub forge_rank: PathBuf,
+    pub ranks_path: PathBuf,
 
     /// Gzip output, detected by file extension by default
     #[structopt(short, long, global = true)]

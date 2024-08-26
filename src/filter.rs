@@ -17,7 +17,7 @@ use crate::forge;
 pub fn filter<T, W, R>(
     mut vcf_writer: VCFWriter<BufWriter<W>>,
     mut vcf_reader: VCFReader<BufReader<R>>,
-    forge_rank: &T,
+    ranks_path: &T,
     top: f64,
     annotate: bool,
     info_key: &String,
@@ -27,7 +27,7 @@ where
     W: Write,
     R: Read,
 {
-    let ranks = forge::load_rank(forge_rank, top);
+    let ranks = forge::load_rank(ranks_path, top);
     let mut vcf_record = VCFRecord::new(vcf_reader.header().clone());
     loop {
         let fetched = vcf_reader.next_record(&mut vcf_record)?;

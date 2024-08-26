@@ -38,7 +38,7 @@ impl<W: Write, R: Read> vcf_util::Process<W, R> for option::Opt {
                 filter::filter(
                     vcf_writer,
                     vcf_reader,
-                    &self.forge_rank,
+                    &self.ranks_path,
                     *top,
                     *annotate,
                     info_key,
@@ -48,7 +48,7 @@ impl<W: Write, R: Read> vcf_util::Process<W, R> for option::Opt {
 
             option::Command::Resolve {} => {
                 info!("parameter: command\t\t= resolve");
-                resolve::resolve(vcf_writer, vcf_reader, &self.forge_rank).unwrap();
+                resolve::resolve(vcf_writer, vcf_reader, &self.ranks_path).unwrap();
             }
         }
     }
@@ -60,7 +60,7 @@ fn main() {
 
     info!("parameter: verbose\t\t= {}", opt.verbose);
     info!("parameter: input\t\t= {}", path_or(&opt.input, "stdin"));
-    info!("parameter: forge_rank\t= {}", &opt.forge_rank.display());
+    info!("parameter: ranks_path\t= {}", &opt.ranks_path.display());
     info!("parameter: gzip\t\t= {}", opt.gzip);
     info!("parameter: output\t\t= {}", path_or(&opt.output, "stdout"));
 

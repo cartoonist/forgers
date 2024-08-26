@@ -235,14 +235,14 @@ fn merge_range(r1: &PosRange, r2: &PosRange) -> PosRange {
 pub fn resolve<T, W, R>(
     mut vcf_writer: VCFWriter<BufWriter<W>>,
     mut vcf_reader: VCFReader<BufReader<R>>,
-    forge_rank: &T,
+    ranks_path: &T,
 ) -> Result<(), VCFError>
 where
     T: AsRef<Path>,
     W: Write,
     R: Read,
 {
-    let ranks = forge::load_rank(forge_rank, 1.0);
+    let ranks = forge::load_rank(ranks_path, 1.0);
     let mut cur_record = VCFRecord::new(vcf_reader.header().clone());
     let mut pre_record = VCFRecord::new(vcf_reader.header().clone());
     let pre_fetched = vcf_reader.next_record(&mut pre_record)?;
