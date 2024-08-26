@@ -24,10 +24,18 @@ broader workflows.
 
 This tool, named `forgers` (short for `forge-rs`), aims to apply FORGe model to input
 VCF files and support VCF manipulation operations based on FORGe ranking. One of
-the design decision for `forgers` is to work seamlessly work with tools such as
+the design decision for `forgers` is to work seamlessly with tools such as
 `bcftools` enabling the user to pipe VCF output of these tools to `forgers` or
 vice versa to create a more complex variant filtration pipeline.
 
+
+# Installation
+
+With a Rust environment set up, run:
+
+`cargo install forgers`
+
+Refer to https://rustup.rs/ if you need to install the Rust environment.
 
 # Usage
 
